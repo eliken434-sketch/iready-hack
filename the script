@@ -1,0 +1,58 @@
+javascript:(function() {
+    if (document.getElementById("nosz-root")) document.getElementById("nosz-root").remove();
+    let theme = "#ff0055";
+    let panicKey = "h";
+    const COOLDOWN_DURATION = 420; 
+    let lastSkip = localStorage.getItem("nosz_last_skip") || 0;
+
+    let e = document.createElement("div");
+    e.id = "nosz-root";
+    e.style.cssText = "width:280px; left:20px; top:20px; background:rgba(10,10,10,0.98); backdrop-filter:blur(15px); color:white; border-top:3px solid " + theme + "; border-radius:12px; position:fixed; z-index:2147483647; font-family:'Segoe UI',sans-serif; box-shadow:0 20px 50px rgba(0,0,0,0.9); padding:0; user-select:none; overflow:hidden;";
+
+    e.innerHTML = '<div style="background:rgba(255,255,255,0.03); padding:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05);"><b id="nosz-title" style="color:' + theme + '; font-size:14px; letter-spacing:2px;">NOSZ SCRIPT</b><div id="close-ui" style="cursor:pointer; font-size:20px; color:#555;">&times;</div></div><div id="main-view" style="padding:15px;"><div style="margin-bottom:10px;"><span style="font-size:10px; color:#888; display:block; margin-bottom:5px;">ADJUSTABLE SCORE:</span><input id="score-input" type="number" value="100" style="width:100%; padding:8px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:6px; outline:none; font-weight:bold; text-align:center;"></div><button id="skip-lesson" style="width:100%; padding:14px; border-radius:8px; border:none; background:' + theme + '; color:white; font-weight:900; cursor:pointer; margin-bottom:12px; box-shadow:0 4px 0 #990033;">SKIP HALF LESSON</button><div id="timer-display" style="text-align:center; font-size:11px; color:#666; font-family:monospace; margin-bottom:10px;">READY</div><button id="toggle-stealth" style="width:100%; padding:8px; background:#333; color:white; border:none; border-radius:4px; font-size:10px; cursor:pointer;">STEALTH: GOOGLE DOCS</button></div><div id="ui-footer" style="background:rgba(255,255,255,0.03); padding:10px; text-align:center; font-size:10px; opacity:0.6; letter-spacing:4px; font-weight:bold; border-top:1px solid rgba(255,255,255,0.05);">ELIJAH ON TOP</div>';
+
+    document.documentElement.appendChild(e);
+
+    function checkTimer() {
+        let now = Math.floor(Date.now() / 1000);
+        let elapsed = now - lastSkip;
+        let btn = document.getElementById("skip-lesson");
+        let display = document.getElementById("timer-display");
+        if (elapsed < COOLDOWN_DURATION) {
+            let rem = COOLDOWN_DURATION - elapsed;
+            btn.disabled = true; btn.style.opacity = "0.5"; btn.style.cursor = "not-allowed";
+            display.innerText = "LOCKED: " + Math.floor(rem/60) + "m " + (rem%60) + "s";
+            display.style.color = "#ff4757";
+        } else {
+            btn.disabled = false; btn.style.opacity = "1"; btn.style.cursor = "pointer";
+            display.innerText = "BYPASS READY";
+            display.style.color = theme;
+        }
+    }
+    setInterval(checkTimer, 1000);
+
+    document.getElementById("toggle-stealth").onclick = () => {
+        window.open("https://google.com", "_blank");
+        document.getElementById("nosz-title").innerText = "Untitled document - Google Docs";
+        document.getElementById("nosz-title").style.color = "#4285f4";
+        document.getElementById("ui-footer").style.display = "none";
+    };
+
+    document.getElementById("skip-lesson").onclick = () => {
+        let sc = document.getElementById("score-input").value || "100";
+        Object.values(top.document.querySelector("#main-section")).return.return.memoizedProps.store.dispatch({
+            type:"features/lesson/COMPLETE_LESSON_COMPONENT",
+            payload:{componentStatusId:top.html5Iframe.src.split("=").split("&"),instructionLessonOutcome:{score:sc}}
+        }),
+        Object.values(top.document.getElementById("html5-lesson-splash")).memoizedProps.children._owner.pendingProps.navigateToPage("/student/lesson/completed/true/"+sc);
+        lastSkip = Math.floor(Date.now() / 1000);
+        localStorage.setItem("nosz_last_skip", lastSkip);
+    };
+
+    document.getElementById("close-ui").onclick = () => e.remove();
+    window.onkeydown = (k) => { if(k.key.toLowerCase() === panicKey) e.style.display = (e.style.display === "none" ? "block" : "none"); };
+    let tX, tY, isD = !1;
+    e.onmousedown = n => { if(n.target.tagName !== "BUTTON" && n.target.id !== "close-ui" && n.target.tagName !== "INPUT"){ isD = !0; tX = n.clientX - e.offsetLeft; tY = n.clientY - e.offsetTop; }};
+    document.addEventListener("mousemove", n => { if(isD){ e.style.left = n.clientX - tX + "px"; e.style.top = n.clientY - tY + "px"; }});
+    document.addEventListener("mouseup", () => isD = !1);
+})();
